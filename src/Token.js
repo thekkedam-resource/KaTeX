@@ -21,16 +21,16 @@ export interface LexerInterface {input: string, pos: number}
  * degraded error reporting, though.
  */
 export class Token {
-    text: *;
-    start: *;
-    end: *;
-    lexer: *;
+    text: any
+    start: number
+    end: number
+    lexer: any
 
     constructor(
-        text: string,           // the text of this token
-        start?: number,         // the start offset, zero-based inclusive
-        end?: number,           // the end offset, zero-based exclusive
-        lexer?: LexerInterface, // the lexer holding the input string
+        text: string,               // the text of this token
+        start: number = NaN,        // the start offset, zero-based inclusive
+        end: number = NaN,          // the end offset, zero-based exclusive
+        lexer?: LexerInterface,     // the lexer holding the input string
     ) {
         this.text = text;
         this.start = start;

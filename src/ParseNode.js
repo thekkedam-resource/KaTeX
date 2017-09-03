@@ -10,12 +10,12 @@ import {LexerInterface, Token} from "./Token";
  * Providing such information can lead to better error reporting.
  */
 export default class ParseNode {
-    type: *;
-    value: *;
-    mode: *;
-    lexer: LexerInterface|void;
-    start: number|void;
-    end: number|void;
+    type: any
+    value: any
+    mode: any
+    lexer: ?LexerInterface
+    start: number
+    end: number
 
     constructor(
         type: string,       // type of node, like e.g. "ordgroup"
@@ -33,6 +33,9 @@ export default class ParseNode {
             this.lexer = firstToken.lexer;
             this.start = firstToken.start;
             this.end = (lastToken || firstToken).end;
+        } else {
+            this.start = NaN;
+            this.end = NaN;
         }
     }
 }

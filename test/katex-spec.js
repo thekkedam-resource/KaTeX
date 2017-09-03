@@ -65,6 +65,12 @@ const stripPositions = function(expr) {
         delete expr.start;
         delete expr.end;
     }
+    if (Number.isNaN(expr.start)) {
+        delete expr.start;
+    }
+    if (Number.isNaN(expr.end)) {
+        delete expr.end;
+    }
     Object.keys(expr).forEach(function(key) {
         stripPositions(expr[key]);
     });

@@ -522,6 +522,11 @@ describe("An implicit group parser", function() {
         expect(sizing.type).toEqual("sizing");
         expect(sizing.value.value.length).toBe(1);
     });
+
+    it("should work within optional groups: \\sqrt[\\small 3]{x}", () => {
+        const tree = stripPositions(getParsed("\\sqrt[\\small 3]{x}"));
+        expect(tree).toMatchSnapshot();
+    });
 });
 
 describe("A function parser", function() {

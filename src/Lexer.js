@@ -33,7 +33,8 @@ import {LexerInterface, Token} from "./Token";
  */
 const tokenRegex = new RegExp(
     "([ \r\n\t]+)|" +                                 // whitespace
-    "([!-\\[\\]-\u2027\u202A-\uD7FF\uF900-\uFFFF]" +  // single codepoint
+    "(%[^\n]*[\n]|" +                                 // comments
+    "[!-\\[\\]-\u2027\u202A-\uD7FF\uF900-\uFFFF]" +   // single codepoint
     "|[\uD800-\uDBFF][\uDC00-\uDFFF]" +               // surrogate pair
     "|\\\\(?:[a-zA-Z@]+|[^\uD800-\uDFFF])" +          // function name
     ")"
@@ -68,6 +69,10 @@ export default class Lexer implements LexerInterface {
         const start = this.pos;
         this.pos += match[0].length;
         const end = this.pos;
-        return new Token(text, start, end, this);
+        if (/%[^\n]*[\n]/.test(text)) {
+            return this.lex();
+        } else {
+            return new Token(text, start, end, this);
+        }
     }
 }

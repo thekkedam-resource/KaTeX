@@ -1,7 +1,8 @@
 {
     "parser": "babel-eslint",
     "plugins": [
-        "flowtype"
+        "flowtype",
+        "transform-runtime-aliasing"
     ],
     "extends": [
         "eslint:recommended",
@@ -24,6 +25,7 @@
         "keyword-spacing": 2,
         "linebreak-style": [2, "unix"],
         "max-len": [2, 84, 4, { "ignoreUrls": true, "ignorePattern": "\\brequire\\([\"']|eslint-disable" }],
+        "new-cap": 2,
         "no-alert": 2,
         "no-array-constructor": 2,
         "no-console": 2,
@@ -46,6 +48,7 @@
         "no-useless-call": 2,
         "no-var": 2,
         "no-with": 2,
+        "object-curly-spacing": [2, "never"],
         "one-var": [2, "never"],
         "prefer-const": 2,
         "prefer-spread": 0, // re-enable once we use es6
@@ -64,7 +67,6 @@
         // ---------------------------------------
         // TODO(csilvers): enable these if/when community agrees on it.
         "prefer-arrow-callback": 0,
-        "object-curly-spacing": [0, "always"],
         // Might be nice to turn this on one day, but since we don't
         // use jsdoc anywhere it seems silly to require it yet.
         "valid-jsdoc": 0,
@@ -73,7 +75,28 @@
     "env": {
         "es6": true,
         "node": true,
-        "browser": true
+        "browser": true,
+        "jest": true
     },
+    "settings": {
+        "react": {
+            "version": "16.8"
+        }
+    },
+    "overrides": [{
+        "files": ["katex.js", "src/**/*.js", "contrib/**/*.js"],
+        "excludedFiles": ["*-spec.js", "unicodeMake.js"],
+        "rules": {
+            "no-restricted-syntax": [2, "ForOfStatement", "ClassDeclaration[superClass]", "ClassExpression[superClass]"],
+            "transform-runtime-aliasing/no-transform-runtime-aliasing": [2, {
+                "transformEnabled": false,
+                "ignore": ["parseInt", "parseFloat", "JSON.stringify"]
+            }]
+        },
+        "env": {
+            "node": false,
+            "jest": false
+        }
+    }],
     "root": true
 }

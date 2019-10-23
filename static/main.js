@@ -1,77 +1,117 @@
+/* eslint no-console:0 */
+/**
+ * This is the webpack entry point for the test page.
+ */
+import katex from '../katex.webpack.js';
+import './main.css';
+import queryString from 'query-string';
+
 function init() {
-    var input = document.getElementById("input");
-    var math = document.getElementById("math");
-    var permalink = document.getElementById("permalink");
+    const input = document.getElementById("input");
+    let math = document.getElementById("math");
+    const permalink = document.getElementById("permalink");
 
-    if ("oninput" in input) {
-        input.addEventListener("input", reprocess, false);
-    } else if (input.attachEvent) {
-        input.attachEvent("onkeyup", reprocess);
+    input.addEventListener("input", reprocess, false);
+    permalink.addEventListener("click", setSearch);
+
+    const options = {displayMode: true, throwOnError: true, trust: true};
+    const macros = {};
+    const query = queryString.parse(window.location.search);
+
+    if (query.text) {
+        input.value = query.text;
     }
 
-    if ("addEventListener" in permalink) {
-        permalink.addEventListener("click", setSearch);
-    } else {
-        permalink.attachEvent("click", setSearch);
+    // Use `display=0` or `displayMode=0` (or `=f`/`=false`/`=n`/`=no`)
+    // to turn off displayMode (which is on by default).
+    const displayQuery = (query.displayMode || query.display);
+    if (displayQuery && displayQuery.match(/^(0|f|n)/)) {
+        options.displayMode = false;
     }
 
-    var match = (/(?:^\?|&)text=([^&]*)/).exec(window.location.search);
-    if (match) {
-        input.value = decodeURIComponent(match[1]);
+    // Use `leqno=1` (or `=t`/`=true`/`=y`/`=yes`) to put tags on left side.
+    if (query.leqno && query.leqno.match(/^(1|t|y)/)) {
+        options.leqno = true;
     }
 
-    var macros = {};
-    var options = {};
-    var macroRegex = /(?:^\?|&)(?:\\|%5[Cc])([A-Za-z]+)=([^&]*)/g;
-    var macroString = "";
-    while ((match = macroRegex.exec(window.location.search)) !== null) {
-        options.macros = macros;
-        macros["\\" + match[1]] = decodeURIComponent(match[2]);
-        macroString += "&" + match[0].substr(1);
+    // Use `fleqn=1` (or `=t`/`=true`/`=y`/`=yes`) to put tags on left side.
+    if (query.fleqn && query.fleqn.match(/^(1|t|y)/)) {
+        options.fleqn = true;
     }
 
-    // The `before` search parameter puts normal text before the math.
-    // The `after` search parameter puts normal text after the math.
+    // Use `strict=warn` for warning strict mode or `strict=error`
+    // (or `=1`/`=t`/`=true`/`=y`/`=yes`)
+    // to turn off displayMode (which is on by default).
+    if (query.strict) {
+        if (query.strict.match(/^(1|t|y|e)/)) {
+            options.strict = "error";
+        } if (query.strict && query.strict.match(/^(w)/)) {
+            options.strict = "warn";
+        }
+    }
+
+    // Use `trust=0` (or `=f`/`=false`/`=n`/`=no`) to not trust input.
+    if (query.trust && query.trust.match(/^(0|f|n)/)) {
+        options.trust = false;
+    }
+
+    // The `before` or `pre` search parameter puts normal text before the math.
+    // The `after` or `post` search parameter puts normal text after the math.
     // Example use: testing baseline alignment.
-    if (/(?:^\?|&)(?:before|after)=/.test(window.location.search)) {
-        var mathContainer = math;
+    if (query.before || query.after || query.pre || query.post) {
+        const mathContainer = math;
         mathContainer.id = "math-container";
 
-        if ((match = /(?:^\?|&)before=([^&]*)/.exec(window.location.search))) {
-            var child = document.createTextNode(decodeURIComponent(match[1]));
-            mathContainer.appendChild(child);
-            macroString += "&" + match[0].substr(1);
+        if (query.before || query.pre) {
+            const before = document.createTextNode(query.before || query.pre);
+            mathContainer.appendChild(before);
         }
 
         math = document.createElement("span");
         math.id = "math";
         mathContainer.appendChild(math);
 
-        if ((match = /(?:^\?|&)after=([^&]*)/.exec(window.location.search))) {
-            var child = document.createTextNode(decodeURIComponent(match[1]));
-            mathContainer.appendChild(child);
-            macroString += "&" + match[0].substr(1);
+        if (query.after || query.post) {
+            const after = document.createTextNode(query.after || query.post);
+            mathContainer.appendChild(after);
         }
     }
+
+    // Macros can be specified via `\command=expansion` or single-character
+    // `c=expansion`.
+    Object.getOwnPropertyNames(query).forEach((key) => {
+        if (key.match(/^\\|^[^]$/)) {
+            macros[key] = query[key];
+        }
+    });
 
     reprocess();
 
     function setSearch() {
-        window.location.search =
-            "?text=" + encodeURIComponent(input.value) + macroString;
+        const query = queryString.parse(window.location.search);
+        query.text = input.value;
+        window.location.search = queryString.stringify(query);
     }
 
     function reprocess() {
+        // Ignore changes to global macros caused by the expression
+        options.macros = Object.assign({}, macros);
         try {
             katex.render(input.value, math, options);
         } catch (e) {
-            if (e.__proto__ == katex.ParseError.prototype) {
+            if (e.__proto__ === katex.ParseError.prototype) {
                 console.error(e);
             } else {
                 throw e;
             }
         }
     }
+
+    if (module.hot) {
+        module.hot.accept('../katex.webpack.js', reprocess);
+    }
 }
 
 init();
+
+export default katex;

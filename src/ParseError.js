@@ -1,6 +1,7 @@
 // @flow
-import ParseNode from "./ParseNode";
 import {Token} from "./Token";
+
+import type {AnyParseNode} from "./parseNode";
 
 /**
  * This is the ParseError class, which is the main error thrown by KaTeX
@@ -15,23 +16,22 @@ class ParseError {
         // Error position based on passed-in Token or ParseNode.
 
     constructor(
-        message: string,           // The error message
-        token?: Token | ParseNode, // An object providing position information
+        message: string,               // The error message
+        token?: ?Token | AnyParseNode, // An object providing position information
     ) {
         let error = "KaTeX parse error: " + message;
         let start;
 
-        if (token && token.lexer &&
-            token.start != null && token.end != null &&
-            token.start <= token.end) {
+        const loc = token && token.loc;
+        if (loc && loc.start <= loc.end) {
             // If we have the input and a position, make the error a bit fancier
 
             // Get the input
-            const input = token.lexer.input;
+            const input = loc.lexer.input;
 
             // Prepend some information
-            start = token.start;
-            const end = token.end;
+            start = loc.start;
+            const end = loc.end;
             if (start === input.length) {
                 error += " at end of input: ";
             } else {
@@ -73,4 +73,4 @@ class ParseError {
 // $FlowFixMe More hackery
 ParseError.prototype.__proto__ = Error.prototype;
 
-module.exports = ParseError;
+export default ParseError;
